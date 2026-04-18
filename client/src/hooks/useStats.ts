@@ -1,9 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import type {
-  CreateStatCardInput,
-  CreateStatEntryInput,
-} from "@shared/schemas";
+
+type CreateStatCardInput = {
+  type: string;
+  label: string;
+  unit: string;
+};
+
+type CreateStatEntryInput = {
+  cardId: string;
+  value?: number;
+  value1?: number;
+  value2?: number;
+  recordedAt?: string;
+  note?: string;
+};
 
 type StatCardItem = {
   _id: string;
