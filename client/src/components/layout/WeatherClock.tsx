@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { api } from "../lib/api";
 
 type WeatherState = {
   temperature: number | null;
@@ -7,6 +8,18 @@ type WeatherState = {
   city: string;
   loading: boolean;
 };
+
+async function reverseGeocode(lat: number, lon: number) {
+  try {
+    const { data } = await api.get("/location/reverse", {
+      params: { lat, lon },
+    });
+
+    return data?.data?.city ?? "";
+  } catch {
+    return "";
+  }
+}
 
 function getMoonPhase(date: Date) {
   const knownNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
@@ -144,19 +157,6 @@ export default function WeatherClock() {
       });
     };
 
-    const reverseGeocode = async (lat: number, lon: number) => {
-      try {
-        const res = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=de&format=json`
-        );
-        if (!res.ok) return "";
-        const data = await res.json();
-        return data?.results?.[0]?.name ?? "";
-      } catch {
-        return "";
-      }
-    };
-
     const loadWeather = async (lat: number, lon: number) => {
       try {
         const [weatherRes, city] = await Promise.all([
@@ -166,7 +166,9 @@ export default function WeatherClock() {
           reverseGeocode(lat, lon),
         ]);
 
-        if (!weatherRes.ok) throw new Error("Weather fetch failed");
+        if (!weatherRes.ok) {
+          throw new Error("Weather fetch failed");
+        }
 
         const weatherData = await weatherRes.json();
         const current = weatherData?.current;
