@@ -19,9 +19,22 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://spaq-drab.vercel.app",
+  "https://spaq-git-main-daves-projects-349fc7b6.vercel.app",
+  "https://spaq-jdxfhunm4-daves-projects-349fc7b6.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );

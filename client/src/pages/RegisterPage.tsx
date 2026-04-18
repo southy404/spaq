@@ -76,9 +76,27 @@ export default function RegisterPage() {
       login(token, user);
       navigate(getNextPath(user), { replace: true });
     } catch (err: any) {
-      setServerError(
-        err?.response?.data?.error ?? err?.message ?? "Registration failed"
-      );
+      const apiError = err?.response?.data?.error;
+
+      let message = "Registration failed";
+
+      if (typeof apiError === "string") {
+        message = apiError;
+      } else if (apiError?.fieldErrors) {
+        const firstFieldError = Object.values(apiError.fieldErrors)
+          .flat()
+          .find(Boolean);
+
+        if (firstFieldError) {
+          message = String(firstFieldError);
+        }
+      } else if (apiError?.message) {
+        message = String(apiError.message);
+      } else if (err?.message) {
+        message = String(err.message);
+      }
+
+      setServerError(message);
     }
   };
 
