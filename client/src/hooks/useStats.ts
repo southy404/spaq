@@ -10,6 +10,7 @@ type CreateStatCardInput = {
 type CreateStatEntryInput = {
   cardId: string;
   value?: number;
+  secondaryValue?: number;
   value1?: number;
   value2?: number;
   recordedAt?: string;
