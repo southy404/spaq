@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  useCoachUpdateAthleteCardGoal,
-  useCoachUpdateAthleteGoal,
-} from "../../hooks/useStats";
+import { useCoachUpdateAthleteCardGoal } from "../../hooks/useStats";
 
 type Props = {
   athleteId: string;

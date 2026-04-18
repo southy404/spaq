@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -14,7 +14,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { FiArrowLeft, FiMaximize2, FiX } from "react-icons/fi";
+import { FiMaximize2, FiX } from "react-icons/fi";
 import {
   useAthleteProfile,
   useCardEntries,
@@ -1170,7 +1170,6 @@ function AnalyzeMetricCard({
 }
 
 export default function AthleteAnalyzePage() {
-  const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
 
   const { data: cards = [], isLoading: cardsLoading } = useCards();
@@ -1324,7 +1323,7 @@ export default function AthleteAnalyzePage() {
               Primäres Ziel
             </p>
             <p className="mt-1 text-base font-semibold capitalize text-primary">
-              {String(kpis.goal).replaceAll("_", " ")}
+              {String(kpis.goal).replace(/_/g, " ")}
             </p>
             <p className="mt-1 text-xs text-muted">laut aktuellem Profil</p>
           </div>

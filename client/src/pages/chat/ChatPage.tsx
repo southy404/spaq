@@ -1,12 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  ChangeEvent,
-} from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { api } from "../../lib/api";
 import { getSocket } from "../../lib/socket";
@@ -84,7 +77,6 @@ function getInitials(name?: string) {
 }
 
 export default function ChatPage() {
-  const navigate = useNavigate();
   const { user, token } = useAuth() as any;
 
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -99,7 +91,7 @@ export default function ChatPage() {
   const [resolvingRequest, setResolvingRequest] = useState(false);
 
   const [aiThread, setAiThread] = useState<UiChatThread | null>(null);
-  const [aiMessages, setAiMessages] = useState<ChatMessage[]>([]);
+  const [, setAiMessages] = useState<ChatMessage[]>([]);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileConnect, setShowMobileConnect] = useState(false);
@@ -798,21 +790,6 @@ export default function ChatPage() {
     : messagesMeta?.relationStatus === "pending"
     ? "Normale Nachrichten sind erst nach Annahme möglich"
     : "Dieser Chat ist nicht mehr aktiv";
-
-  const handleBack = async () => {
-    if (activeThread?._id === AI_THREAD_ID) {
-      await markAiThreadAsRead();
-    } else if (activeThread?._id) {
-      await markThreadAsRead(activeThread._id);
-    }
-
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate(user?.role === "coach" ? "/coach" : "/athlete");
-  };
 
   const logout = (useAuth() as any).logout;
 

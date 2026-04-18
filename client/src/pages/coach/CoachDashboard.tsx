@@ -190,8 +190,7 @@ function formatMetricValue(
 function fmtWert(
   value: number | null | undefined,
   metricKey: string,
-  decimals = 2,
-  unit = ""
+  decimals = 2
 ): string {
   if (metricKey === "pace") {
     return formatPaceValue(value);
@@ -452,15 +451,13 @@ function AthletKarte({
               ? fmtWert(
                   tagesWert,
                   metricDefinition.key,
-                  metricDefinition.decimals,
-                  einheit
+                  metricDefinition.decimals
                 )
               : chartDaten[chartDaten.length - 1]?._echt != null
               ? fmtWert(
                   chartDaten[chartDaten.length - 1]._echt,
                   metricDefinition.key,
-                  metricDefinition.decimals,
-                  einheit
+                  metricDefinition.decimals
                 )
               : "—"}
           </p>
@@ -477,8 +474,7 @@ function AthletKarte({
               {fmtWert(
                 Math.abs(trend.delta),
                 metricDefinition.key,
-                metricDefinition.decimals,
-                einheit
+                metricDefinition.decimals
               )}{" "}
               gesamt
             </p>

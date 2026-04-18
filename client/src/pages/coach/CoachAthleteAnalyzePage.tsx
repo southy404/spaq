@@ -189,7 +189,6 @@ function AnalyzeMetricCard({
   const metricDefinition = useMemo(() => resolveMetricDefinition(card), [card]);
   const goalMode = useMemo(() => resolveGoalMode(card), [card]);
   const isPaceMetric = metricDefinition.key === "pace";
-  const isYAxisReversed = metricDefinition.invertYAxis;
   const yAxisWidth = isPaceMetric ? 76 : 40;
   const chartMarginLeft = 0;
 
@@ -1138,6 +1137,8 @@ function AnalyzeMetricCard({
 export default function CoachAthleteAnalyzePage() {
   const navigate = useNavigate();
   const { athleteId } = useParams<{ athleteId: string }>();
+  const normalizedAthleteId = athleteId ?? null;
+
   const { user } = useAuth();
   const { resolvedTheme } = useTheme();
   const { data: relations = [] } = useCoachAthletes(user?._id);
@@ -1157,7 +1158,10 @@ export default function CoachAthleteAnalyzePage() {
     [timeRange, customFrom, customTo]
   );
 
-  const { data: athleteData } = useAthleteStats(athleteId, { from, to });
+  const { data: athleteData } = useAthleteStats(normalizedAthleteId, {
+    from,
+    to,
+  });
   const stats = athleteData?.stats ?? [];
 
   const selectedRelation = useMemo(() => {

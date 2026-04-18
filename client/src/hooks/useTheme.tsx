@@ -39,10 +39,6 @@ function getStoredTheme(): ThemeMode {
   return "system";
 }
 
-function resolveTheme(theme: ThemeMode): ResolvedTheme {
-  return theme === "system" ? getSystemTheme() : theme;
-}
-
 function applyTheme(resolvedTheme: ResolvedTheme) {
   const root = document.documentElement;
   root.dataset.theme = resolvedTheme;

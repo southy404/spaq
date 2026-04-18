@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
-import { LoginSchema, LoginInput } from "../../../shared/schemas";
+import { LoginSchema, type LoginInput } from "../lib/authSchemas";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../lib/api";
 import BrandLogo from "../components/layout/BrandLogo";
