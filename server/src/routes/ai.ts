@@ -578,38 +578,58 @@ router.get("/motivation", async (req: AuthRequest, res: Response) => {
     const context = await buildAthleteAiContext(athleteId, date);
     const prompt = buildMotivationPrompt(context);
 
-    const result = await generateSPAQText({
-      system: SYSTEM_PROMPT,
-      prompt,
-      temperature: 0.25,
-    });
+    try {
+      const result = await generateSPAQText({
+        system: SYSTEM_PROMPT,
+        prompt,
+        temperature: 0.25,
+      });
 
-    const parsed = extractJsonObject(result.text);
+      const parsed = extractJsonObject(result.text);
 
-    res.json({
-      success: true,
-      data: {
-        text: result.text,
-        structured: parsed
-          ? {
-              motivation:
-                typeof parsed.motivation === "string"
-                  ? parsed.motivation.trim()
-                  : "",
-              dataPoint:
-                typeof parsed.dataPoint === "string"
-                  ? parsed.dataPoint.trim()
-                  : "",
-              nextFocus:
-                typeof parsed.nextFocus === "string"
-                  ? parsed.nextFocus.trim()
-                  : "",
-            }
-          : null,
-        provider: result.provider,
-        model: result.model,
-      },
-    });
+      res.json({
+        success: true,
+        data: {
+          text: result.text,
+          structured: parsed
+            ? {
+                motivation:
+                  typeof parsed.motivation === "string"
+                    ? parsed.motivation.trim()
+                    : "",
+                dataPoint:
+                  typeof parsed.dataPoint === "string"
+                    ? parsed.dataPoint.trim()
+                    : "",
+                nextFocus:
+                  typeof parsed.nextFocus === "string"
+                    ? parsed.nextFocus.trim()
+                    : "",
+              }
+            : null,
+          provider: result.provider,
+          model: result.model,
+          fallback: false,
+        },
+      });
+    } catch (error) {
+      console.error("GET /api/ai/motivation fallback:", error);
+
+      res.json({
+        success: true,
+        data: {
+          text: "",
+          structured: {
+            motivation: "Bleib heute konstant und halte dein Tracking sauber.",
+            dataPoint: "",
+            nextFocus: "Konzentrier dich auf den nächsten guten Eintrag.",
+          },
+          provider: "fallback",
+          model: "static",
+          fallback: true,
+        },
+      });
+    }
   } catch (error) {
     console.error("GET /api/ai/motivation error:", error);
     res.status(500).json({

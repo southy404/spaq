@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "./useAuth";
 import { getSocket } from "../lib/socket";
@@ -14,65 +14,125 @@ type AiThreadResponse = {
   };
 };
 
+type ChatMessagePayload = {
+  data?: {
+    threadId?: string;
+    senderId?: string;
+    text?: string;
+    createdAt?: string;
+  };
+};
+
+const POLL_INTERVAL_MS = 10000;
+const SOCKET_ENABLED = false;
+
 export function useChatUnread() {
   const { token, user } = useAuth() as any;
+
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [aiUnread, setAiUnread] = useState(0);
+
+  const isMountedRef = useRef(true);
+  const isLoadingRef = useRef(false);
 
   const currentUserId = user?._id || user?.id || "";
   const isAthlete = user?.role === "athlete";
 
-  const loadThreads = useCallback(async () => {
-    if (!user) {
-      setThreads([]);
-      setAiUnread(0);
-      return;
-    }
+  const applyThreadData = useCallback(
+    (chatThreads: ChatThread[], aiResult?: AiThreadResponse | null) => {
+      if (!isMountedRef.current) return;
 
-    try {
-      const [{ data: chatData }, aiResult] = await Promise.all([
-        api.get("/chat/threads"),
-        isAthlete ? api.get("/ai/thread") : Promise.resolve(null),
-      ]);
+      setThreads(Array.isArray(chatThreads) ? chatThreads : []);
 
-      setThreads(chatData.data ?? []);
-
-      if (isAthlete && aiResult?.data?.data) {
-        const payload = aiResult.data.data as AiThreadResponse;
-        setAiUnread(payload.thread?.unreadCount ?? 0);
+      if (isAthlete && aiResult?.thread) {
+        setAiUnread(aiResult.thread.unreadCount ?? 0);
       } else {
         setAiUnread(0);
       }
+    },
+    [isAthlete]
+  );
+
+  const resetState = useCallback(() => {
+    if (!isMountedRef.current) return;
+    setThreads([]);
+    setAiUnread(0);
+  }, []);
+
+  const loadThreads = useCallback(async () => {
+    if (!user) {
+      resetState();
+      return;
+    }
+
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+
+    try {
+      const requests: Promise<any>[] = [api.get("/chat/threads")];
+
+      if (isAthlete) {
+        requests.push(api.get("/ai/thread"));
+      }
+
+      const results = await Promise.all(requests);
+      const chatData = results[0]?.data?.data ?? [];
+      const aiData = isAthlete
+        ? (results[1]?.data?.data as AiThreadResponse | undefined) ?? null
+        : null;
+
+      applyThreadData(chatData, aiData);
     } catch (error) {
       console.error("Failed to load unread chat threads", error);
+    } finally {
+      isLoadingRef.current = false;
     }
-  }, [user, isAthlete]);
+  }, [user, isAthlete, applyThreadData, resetState]);
 
-  useEffect(() => {
-    loadThreads();
+  const refreshThreads = useCallback(() => {
+    void loadThreads();
   }, [loadThreads]);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    void loadThreads();
+  }, [loadThreads]);
+
+  useEffect(() => {
+    if (!SOCKET_ENABLED) return;
     if (!token || !user) return;
 
-    const socket = getSocket(token);
+    let socket: ReturnType<typeof getSocket> | null = null;
+
+    try {
+      socket = getSocket(token);
+    } catch (error) {
+      console.error("Failed to initialize chat socket", error);
+      return;
+    }
 
     const refreshFromServer = () => {
-      loadThreads();
+      void loadThreads();
     };
 
-    const onNewMessage = (payload: any) => {
+    const onNewMessage = (payload: ChatMessagePayload) => {
       const message = payload?.data;
-      if (!message) return;
+      if (!message?.threadId) return;
 
-      const isOwn = message.senderId === currentUserId;
+      const isOwnMessage = message.senderId === currentUserId;
 
       setThreads((prev) => {
         const exists = prev.some((thread) => thread._id === message.threadId);
 
         if (!exists) {
           queueMicrotask(() => {
-            loadThreads();
+            void loadThreads();
           });
           return prev;
         }
@@ -81,18 +141,14 @@ export function useChatUnread() {
           thread._id === message.threadId
             ? {
                 ...thread,
-                lastMessage: message.text,
-                lastMessageAt: message.createdAt,
-                unreadCount: isOwn
+                lastMessage: message.text ?? thread.lastMessage,
+                lastMessageAt: message.createdAt ?? thread.lastMessageAt,
+                unreadCount: isOwnMessage
                   ? thread.unreadCount ?? 0
                   : (thread.unreadCount ?? 0) + 1,
               }
             : thread
         );
-      });
-
-      queueMicrotask(() => {
-        loadThreads();
       });
     };
 
@@ -100,6 +156,7 @@ export function useChatUnread() {
     socket.on("chat:message:new", onNewMessage);
 
     return () => {
+      if (!socket) return;
       socket.off("connect", refreshFromServer);
       socket.off("chat:message:new", onNewMessage);
     };
@@ -107,7 +164,7 @@ export function useChatUnread() {
 
   useEffect(() => {
     const onRefresh = () => {
-      loadThreads();
+      void loadThreads();
     };
 
     window.addEventListener("chat:threads:refresh", onRefresh);
@@ -121,8 +178,8 @@ export function useChatUnread() {
     if (!user) return;
 
     const interval = window.setInterval(() => {
-      loadThreads();
-    }, 5000);
+      void loadThreads();
+    }, POLL_INTERVAL_MS);
 
     return () => {
       window.clearInterval(interval);
@@ -143,6 +200,6 @@ export function useChatUnread() {
     totalUnread,
     aiUnread,
     setThreads,
-    refreshThreads: loadThreads,
+    refreshThreads,
   };
 }

@@ -15,14 +15,16 @@ router.get("/reverse", async (req, res) => {
       return;
     }
 
-    const response = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=de&format=json`
-    );
+    const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=de&format=json`;
+    const response = await fetch(url);
 
     if (!response.ok) {
-      res.status(502).json({
-        success: false,
-        error: "Reverse geocoding failed",
+      const text = await response.text();
+      console.error("Reverse geocoding failed:", response.status, text);
+
+      res.json({
+        success: true,
+        data: { city: "" },
       });
       return;
     }
