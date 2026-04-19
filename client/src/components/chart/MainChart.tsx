@@ -207,6 +207,36 @@ export default function MainChart({
     }
   );
 
+  const chartBasePoints = useMemo(() => {
+    if (!selectedCards.length || !displayCard) return [];
+
+    return buildChartPoints({
+      card: displayCard,
+      entries: entries ?? [],
+      labelFormatter: (recordedAt) =>
+        recordedAt.toLocaleDateString("de-DE", {
+          day: "2-digit",
+          month: "short",
+        }),
+    });
+  }, [selectedCards.length, displayCard, entries]);
+
+  const rawValues = useMemo(
+    () => chartBasePoints.map((point) => point.rawValue),
+    [chartBasePoints]
+  );
+
+  const valueRange = useMemo(() => getValueRange(rawValues), [rawValues]);
+
+  const summary = useMemo(
+    () =>
+      getMetricSummary({
+        card: displayCard,
+        values: rawValues,
+      }),
+    [displayCard, rawValues]
+  );
+
   if (!selectedCards.length) {
     return (
       <div className="flex h-64 items-center justify-center rounded-2xl border border-subtle bg-surface p-8">
@@ -216,24 +246,6 @@ export default function MainChart({
       </div>
     );
   }
-
-  const chartBasePoints = buildChartPoints({
-    card: displayCard,
-    entries: entries ?? [],
-    labelFormatter: (recordedAt) =>
-      recordedAt.toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "short",
-      }),
-  });
-
-  const rawValues = chartBasePoints.map((point) => point.rawValue);
-  const valueRange = useMemo(() => getValueRange(rawValues), [rawValues]);
-
-  const summary = getMetricSummary({
-    card: displayCard,
-    values: rawValues,
-  });
 
   const effectiveTrendActive = trendActive;
 
