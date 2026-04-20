@@ -628,9 +628,9 @@ export default function StatCard({
   return (
     <>
       <div
-        className={`group relative flex min-h-[214px] flex-col overflow-hidden rounded-[22px] border bg-gradient-to-br ${
+        className={`group relative flex min-h-[214px] flex-col overflow-hidden rounded-[22px] border border-subtle bg-surface bg-gradient-to-br ${
           colorOption.from
-        } ${colorOption.border} p-4 transition-all duration-200 ${
+        } p-4 shadow-[0_10px_30px_rgba(15,23,42,0.10)] transition-all duration-200 ${
           selected ? "ring-2 ring-[#FFD300]/50" : ""
         } ${
           isCustom || isWeight ? "cursor-pointer" : ""

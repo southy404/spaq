@@ -30,13 +30,17 @@
   --app-glow-2: rgba(255, 211, 0, 0.09);
   --app-glow-3: rgba(255, 211, 0, 0.04);
   --app-noise-opacity: 0.03;
-  --app-diagonal-wash: rgba(255, 211, 0, 0.08);
+  --app-top-glow: rgba(255, 211, 0, 0.14);
+  --app-top-glow-soft: rgba(255, 211, 0, 0.07);
+
+  --app-pattern-opacity: 0.08;
+  --app-pattern-size: 560px;
 }
 
 html.dark {
   --app-bg: #0f0f13;
-  --surface: #17171d99;
-  --surface-2: #1a1a2454;
+  --surface: rgba(23, 23, 29, 0.92);
+  --surface-2: rgba(26, 26, 36, 0.88);
   --surface-3: #20202b;
 
   --text-primary: #ffffff;
@@ -56,7 +60,11 @@ html.dark {
   --app-glow-2: rgba(255, 211, 0, 0.02);
   --app-glow-3: rgba(255, 211, 0, 0.02);
   --app-noise-opacity: 0.045;
-  --app-diagonal-wash: rgba(255, 211, 0, 0.035);
+  --app-top-glow: rgba(255, 211, 0, 0.09);
+  --app-top-glow-soft: rgba(255, 211, 0, 0.035);
+
+  --app-pattern-opacity: 0.03;
+  --app-pattern-size: 560px;
 }
 
 * {
@@ -80,15 +88,23 @@ body {
   -webkit-font-smoothing: antialiased;
   transition: background-color 180ms ease, color 180ms ease;
   background-color: var(--app-bg);
-  background-image: linear-gradient(
-      135deg,
-      transparent 0%,
-      var(--app-diagonal-wash) 18%,
-      transparent 22%
+  background-image: radial-gradient(
+      ellipse 86% 52% at 50% -18%,
+      var(--app-top-glow) 0%,
+      var(--app-top-glow-soft) 26%,
+      rgba(255, 211, 0, 0.025) 42%,
+      transparent 72%
     ),
-    radial-gradient(circle at 38% 22%, var(--app-glow-1) 0%, transparent 28%),
-    radial-gradient(circle at 68% 30%, var(--app-glow-2) 0%, transparent 14%),
-    radial-gradient(circle at 50% 110%, var(--app-glow-3) 0%, transparent 36%);
+    radial-gradient(
+      ellipse 56% 30% at 50% 8%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 80% 46% at 50% 115%,
+      var(--app-glow-3) 0%,
+      transparent 34%
+    );
   background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
@@ -100,10 +116,16 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: var(--app-noise-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='white'%3E%3Ccircle cx='16' cy='18' r='1'/%3E%3Ccircle cx='46' cy='34' r='1'/%3E%3Ccircle cx='74' cy='22' r='1'/%3E%3Ccircle cx='104' cy='38' r='1'/%3E%3Ccircle cx='136' cy='20' r='1'/%3E%3Ccircle cx='170' cy='34' r='1'/%3E%3Ccircle cx='202' cy='28' r='1'/%3E%3Ccircle cx='24' cy='82' r='1'/%3E%3Ccircle cx='58' cy='92' r='1'/%3E%3Ccircle cx='92' cy='78' r='1'/%3E%3Ccircle cx='126' cy='96' r='1'/%3E%3Ccircle cx='160' cy='84' r='1'/%3E%3Ccircle cx='194' cy='98' r='1'/%3E%3Ccircle cx='20' cy='146' r='1'/%3E%3Ccircle cx='52' cy='158' r='1'/%3E%3Ccircle cx='86' cy='144' r='1'/%3E%3Ccircle cx='118' cy='166' r='1'/%3E%3Ccircle cx='154' cy='150' r='1'/%3E%3Ccircle cx='188' cy='170' r='1'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 220px 220px;
-  mix-blend-mode: soft-light;
+  opacity: var(--app-pattern-opacity);
+  background-image: url("/background.svg");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 100% auto;
+  mix-blend-mode: multiply;
+}
+
+html.dark body::before {
+  mix-blend-mode: screen;
 }
 
 body::after {
@@ -112,16 +134,10 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(
-      circle at 42% 18%,
-      rgba(255, 255, 255, 0.01),
-      transparent 16%
-    ),
-    radial-gradient(
-      circle at 64% 28%,
-      rgba(255, 255, 255, 0.01),
-      transparent 14%
-    );
+  opacity: var(--app-noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='white'%3E%3Ccircle cx='16' cy='18' r='1'/%3E%3Ccircle cx='46' cy='34' r='1'/%3E%3Ccircle cx='74' cy='22' r='1'/%3E%3Ccircle cx='104' cy='38' r='1'/%3E%3Ccircle cx='136' cy='20' r='1'/%3E%3Ccircle cx='170' cy='34' r='1'/%3E%3Ccircle cx='202' cy='28' r='1'/%3E%3Ccircle cx='24' cy='82' r='1'/%3E%3Ccircle cx='58' cy='92' r='1'/%3E%3Ccircle cx='92' cy='78' r='1'/%3E%3Ccircle cx='126' cy='96' r='1'/%3E%3Ccircle cx='160' cy='84' r='1'/%3E%3Ccircle cx='194' cy='98' r='1'/%3E%3Ccircle cx='20' cy='146' r='1'/%3E%3Ccircle cx='52' cy='158' r='1'/%3E%3Ccircle cx='86' cy='144' r='1'/%3E%3Ccircle cx='118' cy='166' r='1'/%3E%3Ccircle cx='154' cy='150' r='1'/%3E%3Ccircle cx='188' cy='170' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  mix-blend-mode: soft-light;
 }
 
 #root {
@@ -197,15 +213,23 @@ body::after {
 
 @utility bg-app-shell {
   background-color: var(--app-bg);
-  background-image: linear-gradient(
-      135deg,
-      transparent 0%,
-      var(--app-diagonal-wash) 18%,
-      transparent 42%
+  background-image: radial-gradient(
+      ellipse 86% 52% at 50% -18%,
+      var(--app-top-glow) 0%,
+      var(--app-top-glow-soft) 26%,
+      rgba(255, 211, 0, 0.025) 42%,
+      transparent 72%
     ),
-    radial-gradient(circle at 38% 22%, var(--app-glow-1) 0%, transparent 28%),
-    radial-gradient(circle at 68% 30%, var(--app-glow-2) 0%, transparent 24%),
-    radial-gradient(circle at 50% 110%, var(--app-glow-3) 0%, transparent 36%);
+    radial-gradient(
+      ellipse 56% 30% at 50% 8%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 80% 46% at 50% 115%,
+      var(--app-glow-3) 0%,
+      transparent 34%
+    );
 }
 
 .themed-date-input {
