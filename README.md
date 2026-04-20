@@ -19,8 +19,17 @@
 <p align="center">
   <img src="https://img.shields.io/badge/status-active-success?style=flat" />
   <img src="https://img.shields.io/badge/version-0.1.0-blue?style=flat" />
+  <img src="https://img.shields.io/badge/deployment-live-brightgreen?style=flat" />
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat" />
 </p>
+
+---
+
+## Live Demo
+
+🌐 **https://spaq-drab.vercel.app**
+
+> Note: Backend is hosted separately. Some real-time features may depend on server availability.
 
 ---
 
@@ -31,7 +40,7 @@ SPAQ is a modular fitness app built around two roles:
 - **Athletes** track health and performance metrics in a flexible dashboard
 - **Coaches** monitor connected athletes, review shared metrics, and communicate in real time
 
-The app now includes:
+The app includes:
 
 - structured athlete onboarding
 - dashboard auto-setup from onboarding
@@ -124,11 +133,17 @@ The app now includes:
 - initial weight automatically seeded into stats
 - onboarding data stored as reusable athlete profile context
 
-### AI-ready foundation
+### AI (Current State)
 
-- athlete profile model
-- enriched context for future motivation / insight generation
-- profile + stats prepared for Ollama-first / optional external provider setup later
+The system is prepared for AI features with a structured pipeline already in place:
+
+- athlete context generation
+- enriched profile + stats pipeline ready for inference
+
+Current state:
+- local-first Ollama integration planned
+- fallback handling required in production
+- endpoints exist but are not fully active in deployed environments
 
 ### Mobile / sync direction
 
@@ -200,6 +215,7 @@ cd server && npm run seed
 This creates two demo accounts:
 
 - **Athlete** — `athlete@demo.com` / `password123`
+- **Athlete** — `dirk@demo.com` / `password123` *(pre-filled with sample data)*
 - **Coach** — `coach@demo.com` / `password123`
 
 ### 4. Run the app
@@ -214,7 +230,64 @@ cd client && npm run dev
 
 Open http://localhost:5173
 
-## Project structure
+---
+
+## Deployment
+
+### Frontend (Vercel)
+
+The frontend is deployed on Vercel.
+
+Important:
+- SPA routing is handled via `vercel.json` rewrites
+- All routes fall back to `index.html`
+
+### Backend (Self-hosted)
+
+The backend runs on a Linux server:
+
+- Node.js (ts-node-dev or production build)
+- MongoDB Atlas
+- Socket.io (WebSocket support required on the host)
+
+### Environment (Production)
+
+`client/.env`:
+
+```env
+VITE_API_URL=https://<your-api-domain>/api
+```
+
+`server/.env`:
+
+```env
+PORT=5000
+MONGODB_URI=...
+JWT_SECRET=...
+NODE_ENV=production
+```
+
+---
+
+## Known Issues
+
+- WebSocket connection may fail if the reverse proxy is not configured for WebSocket upgrades (e.g. missing Nginx `Upgrade` headers)
+- AI endpoints require a local Ollama instance or fallback configuration — not active in the current deployment
+- Location reverse geocoding may return 502 depending on external API availability
+- Rapid page reloads previously caused 404 errors — fixed via Vercel `vercel.json` rewrites
+
+---
+
+## Realtime (Socket.io)
+
+- used for chat updates and notifications
+- requires proper WebSocket proxy setup in production (e.g. Nginx with `Upgrade` and `Connection` headers)
+
+> Note: Real-time features may be degraded if WebSocket upgrade is not configured on the server host.
+
+---
+
+## Project Structure
 
 ```
 SPAQ/
@@ -266,6 +339,8 @@ SPAQ/
     └── schemas/              # shared zod schemas
 ```
 
+---
+
 ## Important API Areas
 
 ### Auth
@@ -274,13 +349,7 @@ SPAQ/
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 
-**Auth response includes:**
-
-- user id
-- role
-- onboarding completion state
-
----
+Auth response includes: user id, role, onboarding completion state.
 
 ### Athlete
 
@@ -294,8 +363,6 @@ SPAQ/
 - `PATCH /api/athlete/profile`
 - `POST /api/athlete/onboarding`
 
----
-
 ### Stats
 
 - `POST /api/stats/entries`
@@ -304,15 +371,11 @@ SPAQ/
 - `GET /api/stats/day?date=YYYY-MM-DD`
 - `GET /api/stats/entries/:cardId`
 
----
-
 ### Coach
 
 - athlete relation and permissions routes
 - stats access for allowed metrics
 - activity overview
-
----
 
 ### Chat
 
@@ -322,19 +385,9 @@ SPAQ/
 - unread counts
 - socket events
 
----
-
 ### AI
 
-Prepared for:
-
-- motivation
-- insights
-- contextual athlete chat
-
-Currently based on:
-
-- athlete profile + stats foundation
+Prepared for motivation, insights, and contextual athlete chat. Currently based on athlete profile + stats context. Not active in the deployed environment.
 
 ---
 
@@ -360,23 +413,11 @@ There are **no special locked onboarding cards**.
 
 ### Athlete
 
-Athlete card order is stored in the backend using `StatCard.order`.
-
-This means:
-
-- drag & drop order survives reload
-- order is consistent across sessions/devices
+Athlete card order is stored in the backend using `StatCard.order`. This means drag & drop order survives reload and is consistent across sessions and devices.
 
 ### Coach
 
-Coach card order is stored locally in `localStorage` per athlete.
-
-This means:
-
-- coach can personalize their own view
-- it survives reload in the same browser
-- it does not affect athlete card order
-- it is not synced across devices
+Coach card order is stored locally in `localStorage` per athlete. This means the coach can personalize their view, it survives reload in the same browser, but is not synced across devices and does not affect athlete card order.
 
 ---
 
@@ -384,47 +425,22 @@ This means:
 
 Athlete onboarding captures:
 
-- current weight
-- target weight
-- height
-- birth date
-- gender
-- primary goal
-- reason / motivation
-- event target
-- lifestyle
-- activity level
-- experience
-- workouts per week
-- pain points
-- diet preference
-- meal structure
-- training location
-- equipment level
-- available days
-- sleep quality
-- stress level
-- limitations
-- AI tone
-- notes
-- preferred start mode
+- current weight, target weight, height, birth date, gender
+- primary goal, reason / motivation, event target
+- lifestyle, activity level, experience, workouts per week
+- pain points, diet preference, meal structure
+- training location, equipment level, available days
+- sleep quality, stress level, limitations
+- AI tone, notes, preferred start mode
 
-This data is stored in `AthleteProfile` and reused for:
-
-- dashboard setup
-- initial card generation
-- AI context
-- coaching context
-- future personalization
+This data is stored in `AthleteProfile` and reused for dashboard setup, initial card generation, AI context, coaching context, and future personalization.
 
 ---
 
-## Known Product Direction
-
-Planned / prepared next steps:
+## Planned Next Steps
 
 - local Ollama-first AI integration
-- optional Gemini or external provider support
+- optional external provider support (e.g. Gemini)
 - AI chat tab for athletes
 - AI-generated motivation and insights
 - smartwatch / Health Connect / Google Fit import
@@ -444,30 +460,4 @@ Planned / prepared next steps:
 **Important:**
 
 - `/cards/reorder` must be declared before `/cards/:id`
-
-- `athleteId` and `cardId` are Mongo `ObjectId`s  
-  → always ensure proper casting in queries
-
----
-
-## Demo Use Cases
-
-### Athlete
-
-- create account
-- complete onboarding
-- get auto-generated starter dashboard
-- manually adjust weight
-- add custom metrics
-- delete unwanted starter cards
-- share selected metrics with coach
-- chat with coach
-
-### Coach
-
-- receive athlete request
-- accept connection
-- monitor allowed metrics
-- reorder own dashboard view
-- check activity in selected time ranges
-- message athlete directly
+- `athleteId` and `cardId` are Mongo `ObjectId`s — always ensure proper casting in queries
